@@ -57,14 +57,12 @@ namespace cAlgo.Indicators
             {
                 if (upBuffer > prevUpBuffer) upBuffer = prevUpBuffer;
                 DownTrend[index] = upBuffer;
-                if(prevTrend == 1)  DownTrend[index - 1] = UpTrend[index - 1];              
             }
 
             if (trend == 1)
             {
                 if (downBuffer < prevDownBuffer) downBuffer = prevDownBuffer;
                 UpTrend[index] = downBuffer;
-                if (prevTrend == -1)  UpTrend[index - 1] = DownTrend[index - 1];
             }
 
             prevDownBuffer = downBuffer;
