@@ -22,27 +22,20 @@ namespace cAlgo.Indicators
         [Output("Down Trend", LineColor = "Red", PlotType = PlotType.Points, Thickness = 1)]
         public IndicatorDataSeries DownTrend { get; set; }
 
-        private IndicatorDataSeries upBuffer;
-        private IndicatorDataSeries downBuffer;
         private AverageTrueRange averageTrueRange;
         private int[] trend;
-        private bool changeOfTrend;
         private Bars customBars;
+        double prevUpBuffer, prevDownBuffer;
 
         protected override void Initialize()
         {
             customBars = MarketData.GetBars(TimeFrame);
             trend = new int[1];
-            upBuffer = CreateDataSeries();
-            downBuffer = CreateDataSeries();
             averageTrueRange = Indicators.AverageTrueRange(customBars, Period, MovingAverageType.Simple);
         }
 
         public override void Calculate(int index)
         {
-            UpTrend[index] = double.NaN;
-            DownTrend[index] = double.NaN;
-
             if (index < 1)
             {
                 trend[index] = 1;
@@ -53,41 +46,39 @@ namespace cAlgo.Indicators
             double median = (customBars.HighPrices[customIndex] + customBars.LowPrices[customIndex]) / 2;
             double atr = averageTrueRange.Result[customIndex];
 
-            upBuffer[index] = median + Multiplier * atr;
-            downBuffer[index] = median - Multiplier * atr;
+            double upBuffer = median + Multiplier * atr;
+            double downBuffer = median - Multiplier * atr;
 
             Array.Resize(ref trend, index + 1);
-            changeOfTrend = false;
 
-            trend[index] = customBars.ClosePrices[customIndex] > upBuffer[index - 1] ? 1 :
-                           customBars.ClosePrices[customIndex] < downBuffer[index - 1] ? -1 :
+            trend[index] = customBars.ClosePrices[customIndex] > prevUpBuffer ? 1 :
+                           customBars.ClosePrices[customIndex] < prevDownBuffer ? -1 :
                            trend[index - 1];
 
-            changeOfTrend = trend[index] != trend[index - 1];
-
-            if (trend[index] == -1 && upBuffer[index] > upBuffer[index - 1])
+            if (trend[index] == -1 && upBuffer > prevUpBuffer)
             {
-                upBuffer[index] = upBuffer[index - 1];
+                upBuffer = prevUpBuffer;
                 
-                DownTrend[index] = upBuffer[index];
-                if (changeOfTrend)
+                DownTrend[index] = upBuffer;
+                if (trend[index - 1] != -1)
                 {
                     DownTrend[index - 1] = UpTrend[index - 1];
-                    changeOfTrend = false;
                 }               
             }
 
-            if (trend[index] == 1 && downBuffer[index] < downBuffer[index - 1])
+            if (trend[index] == 1 && downBuffer < prevUpBuffer)
             {
-                downBuffer[index] = downBuffer[index - 1];
+                downBuffer = prevUpBuffer;
                 
-                UpTrend[index] = downBuffer[index];
-                if (changeOfTrend)
+                UpTrend[index] = downBuffer;
+                if (trend[index - 1] != 1)
                 {
                     UpTrend[index - 1] = DownTrend[index - 1];
-                    changeOfTrend = false;
                 }
             }
+
+            prevDownBuffer = downBuffer;
+            prevUpBuffer = upBuffer;
         }
     }
 }
