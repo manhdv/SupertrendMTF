@@ -23,14 +23,13 @@ namespace cAlgo.Indicators
         public IndicatorDataSeries DownTrend { get; set; }
 
         private AverageTrueRange averageTrueRange;
-        private int[] trend;
         private Bars customBars;
-        double prevUpBuffer, prevDownBuffer;
+        private double prevUpBuffer, prevDownBuffer;
+        private int prevTrend;
 
         protected override void Initialize()
         {
             customBars = MarketData.GetBars(TimeFrame);
-            trend = new int[1];
             averageTrueRange = Indicators.AverageTrueRange(customBars, Period, MovingAverageType.Simple);
         }
 
@@ -38,7 +37,7 @@ namespace cAlgo.Indicators
         {
             if (index < 1)
             {
-                trend[index] = 1;
+                prevTrend = 1;
                 return;
             }
 
@@ -49,29 +48,28 @@ namespace cAlgo.Indicators
             double upBuffer = median + Multiplier * atr;
             double downBuffer = median - Multiplier * atr;
 
-            Array.Resize(ref trend, index + 1);
 
-            trend[index] = customBars.ClosePrices[customIndex] > prevUpBuffer ? 1 :
+            int trend = customBars.ClosePrices[customIndex] > prevUpBuffer ? 1 :
                            customBars.ClosePrices[customIndex] < prevDownBuffer ? -1 :
-                           trend[index - 1];
+                           prevTrend;
 
-            if (trend[index] == -1 && upBuffer > prevUpBuffer)
+            if (trend == -1 && upBuffer > prevUpBuffer)
             {
                 upBuffer = prevUpBuffer;
                 
                 DownTrend[index] = upBuffer;
-                if (trend[index - 1] != -1)
+                if (prevTrend != -1)
                 {
                     DownTrend[index - 1] = UpTrend[index - 1];
                 }               
             }
 
-            if (trend[index] == 1 && downBuffer < prevUpBuffer)
+            if (trend == 1 && downBuffer < prevUpBuffer)
             {
-                downBuffer = prevUpBuffer;
+                downBuffer = prevDownBuffer;
                 
                 UpTrend[index] = downBuffer;
-                if (trend[index - 1] != 1)
+                if (prevTrend != 1)
                 {
                     UpTrend[index - 1] = DownTrend[index - 1];
                 }
@@ -79,6 +77,7 @@ namespace cAlgo.Indicators
 
             prevDownBuffer = downBuffer;
             prevUpBuffer = upBuffer;
+            prevTrend = trend;
         }
     }
 }
