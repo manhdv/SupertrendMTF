@@ -53,21 +53,24 @@ namespace cAlgo.Indicators
                            customBars.ClosePrices[customIndex] < prevDownBuffer ? -1 :
                            prevTrend;
 
-            if (trend == -1 && upBuffer > prevUpBuffer)
+            if (trend == -1)
             {
-                upBuffer = prevUpBuffer;
-                DownTrend[index] = prevTrend == -1 ? upBuffer : DownTrend[index - 1] = UpTrend[index - 1];              
+                if (upBuffer > prevUpBuffer) upBuffer = prevUpBuffer;
+                DownTrend[index] = upBuffer;
+                if(prevTrend == 1)  DownTrend[index - 1] = UpTrend[index - 1];              
             }
 
-            if (trend == 1 && downBuffer < prevUpBuffer)
+            if (trend == 1)
             {
-                downBuffer = prevDownBuffer;
-                UpTrend[index] = prevTrend == 1 ? downBuffer : UpTrend[index - 1] = DownTrend[index - 1]; ;
+                if (downBuffer < prevDownBuffer) downBuffer = prevDownBuffer;
+                UpTrend[index] = downBuffer;
+                if (prevTrend == -1)  UpTrend[index - 1] = DownTrend[index - 1];
             }
 
             prevDownBuffer = downBuffer;
             prevUpBuffer = upBuffer;
             prevTrend = trend;
+            Print("UpTrend = {0}, DownTrend = {1}", UpTrend[index], DownTrend[index] );
         }
     }
 }
