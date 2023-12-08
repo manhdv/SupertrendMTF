@@ -68,7 +68,6 @@ namespace cAlgo.Indicators
             prevDownBuffer = downBuffer;
             prevUpBuffer = upBuffer;
             prevTrend = trend;
-            Print("UpTrend = {0}, DownTrend = {1}", UpTrend[index], DownTrend[index] );
         }
     }
 }
